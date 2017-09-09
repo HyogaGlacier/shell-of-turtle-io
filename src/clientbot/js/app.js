@@ -1,10 +1,12 @@
 var io = require('socket.io-client');
 var ChatClient = require('./chat-client');
 var Canvas = require('./canvas');
+var Bot = require('./bot');
 var global = require('./global');
 
 var playerNameInput = document.getElementById('playerNameInput');
 var socket;
+var bot;
 var reason;
 
 var debug = function(args) {
@@ -13,13 +15,9 @@ var debug = function(args) {
     }
 };
 
-if ( /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent) ) {
-    global.mobile = true;
-}
-
-function startGame(type) {
+function startGame() {
     global.playerName = playerNameInput.value.replace(/(<([^>]+)>)/ig, '').substring(0,25);
-    global.playerType = type;
+    global.playerType = 'player';
 
     global.screenWidth = window.innerWidth;
     global.screenHeight = window.innerHeight;
@@ -27,9 +25,19 @@ function startGame(type) {
     document.getElementById('startMenuWrapper').style.maxHeight = '0px';
     document.getElementById('gameAreaWrapper').style.opacity = 1;
     if (!socket) {
-        socket = io({query:"type=" + type});
+        socket = io({query:"type=" + global.playerType});
         setupSocket(socket);
     }
+
+    bot = new Bot({
+        feed: function() {
+            socket.emit('1');
+        },
+        split: function() {
+            socket.emit('2');
+        },
+    });
+
     if (!global.animLoopHandle)
         animloop();
     socket.emit('respawn');
@@ -49,15 +57,9 @@ function validNick() {
 window.onload = function() {
 
     var btn = document.getElementById('startButton'),
-        btnS = document.getElementById('spectateButton'),
         nickErrorText = document.querySelector('#startMenu .input-error');
 
-    btnS.onclick = function () {
-        startGame('spectate');
-    };
-
     btn.onclick = function () {
-
         // Checks if the nick is valid.
         if (validNick()) {
             nickErrorText.style.opacity = 0;
@@ -243,23 +245,13 @@ function setupSocket(socket) {
 
     // Handle movement.
     socket.on('serverTellPlayerMove', function (userData, foodsList, massList, virusList) {
+        bot.onServerTellPlayerMove(userData, foodsList, massList, virusList);
+
         var playerData;
         for(let i =0; i< userData.length; i++) {
             if(typeof(userData[i].id) == "undefined") {
                 playerData = userData[i];
                 i = userData.length;
-            }
-        }
-
-        var nearestFoodOffsetX = Infinity;
-        var nearestFoodOffsetY = Infinity;
-        for(let i=0; i<foodsList.length; i++) {
-            const food = foodsList[i];
-            const offsetX = food.x - playerData.x;
-            const offsetY = food.y - playerData.y;
-            if(offsetX * offsetX + offsetY * offsetY < nearestOffsetX * nearestOffsetX + nearestOffsetY * nearestOffsetY) {
-                nearestOffsetX = offsetX;
-                nearestOffsetY = offsetY;
             }
         }
 
@@ -273,8 +265,6 @@ function setupSocket(socket) {
         player.cells = playerData.cells;
         player.xoffset = isNaN(xoffset) ? 0 : xoffset;
         player.yoffset = isNaN(yoffset) ? 0 : yoffset;
-
-        global.target = {x: player.x + nearestOffsetX, y: player.y + nearestOffsetY};
 
         users = userData;
         foods = foodsList;
@@ -583,7 +573,7 @@ function gameLoop() {
             });
 
             drawPlayers(orderMass);
-            socket.emit('0', window.canvas.target); // playerSendTarget "Heartbeat".
+            socket.emit('0', bot.target); // playerSendTarget "Heartbeat".
 
         } else {
             graph.fillStyle = '#333333';

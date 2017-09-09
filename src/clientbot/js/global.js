@@ -17,8 +17,8 @@ module.exports = {
     virusSides: 20,
 
     // Canvas
-    screenWidth: window.innerWidth,
-    screenHeight: window.innerHeight,
+    screenWidth: 1366,
+    screenHeight: 778,
     gameWidth: 0,
     gameHeight: 0,
     xoffset: -0,
@@ -32,4 +32,5 @@ module.exports = {
     toggleMassState: 0,
     backgroundColor: '#f2fbff',
     lineColor: '#000000',
+    bot: undefined,
 };
