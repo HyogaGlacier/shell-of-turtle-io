@@ -52,7 +52,7 @@ if(s.host !== "DEFAULT") {
 
 var initMassLog = util.log(c.defaultPlayerMass, c.slowBase);
 
-app.use(express.static(__dirname + '/../client'));
+app.use(express.static(__dirname + '/../clientbot'));
 
 function addFood(toAdd) {
     var radius = util.massToRadius(c.foodMass);

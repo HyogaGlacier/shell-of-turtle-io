@@ -10,7 +10,7 @@ var webpack = require('webpack-stream');
 var fs = require('fs');
 
 
-gulp.task('build', ['build-client', 'build-server', 'test']);
+gulp.task('build', ['build-clientbot', 'build-client', 'build-server', 'test']);
 
 gulp.task('test', ['lint'], function () {
     gulp.src(['test/**/*.js'])
@@ -24,6 +24,23 @@ gulp.task('lint', function () {
       }))
     .pipe(jshint.reporter('default', { verbose: true}))
     .pipe(jshint.reporter('fail'));
+});
+
+gulp.task('build-clientbot', ['lint', 'move-clientbot'], function () {
+  return gulp.src(['src/clientbot/js/app.js'])
+    .pipe(uglify())
+    .pipe(webpack(require('./webpack.config.js')))
+    .pipe(babel({
+      presets: [
+        ['es2015', { 'modules': false }]
+      ]
+    }))
+    .pipe(gulp.dest('bin/clientbot/js/'));
+});
+
+gulp.task('move-clientbot', function () {
+  return gulp.src(['src/clientbot/**/*.*', '!clientbot/js/*.js'])
+    .pipe(gulp.dest('./bin/clientbot/'));
 });
 
 gulp.task('build-client', ['lint', 'move-client'], function () {
@@ -51,6 +68,7 @@ gulp.task('build-server', ['lint'], function () {
 });
 
 gulp.task('watch', ['build'], function () {
+  gulp.watch(['src/clientbot/**/*.*'], ['build-clientbot', 'move-clientbot']);
   gulp.watch(['src/client/**/*.*'], ['build-client', 'move-client']);
   gulp.watch(['src/server/*.*', 'src/server/**/*.js'], ['build-server']);
   gulp.start('run-only');
