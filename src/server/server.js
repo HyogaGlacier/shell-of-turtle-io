@@ -78,7 +78,7 @@ function breakFood(breakUser) {
     var radius = util.massToRadius(c.foodMass);
     breakUser.mass *= 0.8;
     while (breakUser.mass > 0) {
-        var putFoodMass = min(25 * Math.random() + 5, breakUser.mass);
+        var putFoodMass = Math.min(25 * Math.random() + 5, breakUser.mass);
         var targetArg = Math.random();
         var targetDist = Math.random() * 20;
         massFood.push({
@@ -88,7 +88,7 @@ function breakFood(breakUser) {
             hue: Math.round(Math.random() * 360),
             target: {
                 x: breakUser.x - Math.round(targetDist * Math.cos(targetArg)),
-                y: currentPlayer.y - Math.round(targetDist * Math.sin(targetArg))
+                y: breakUser.y - Math.round(targetDist * Math.sin(targetArg))
             },
             x: breakUser.x,
             y: breakUser.y,
@@ -129,14 +129,14 @@ function movePlayer(player) {
     // -----
     var shellArgs = [];
     for (var i = 0; i < player.shells.length; i++) {
-        shellsArgs.push(Math.atan2(player.shells[i].y - player.y, player.shells[i].x - player.x));
+        shellArgs.push(Math.atan2(player.shells[i].y - player.y, player.shells[i].x - player.x));
     }
     var shellRadius = 50;
     if (player.shells.length > 0) {
         shellRadius = Math.round(Math.sqrt(Math.pow(player.shells[0].y - player.y, 2) + Math.pow(player.shells[0].x - player.x, 2)));
     }
 
-    for (var i = 0; i < player.cells.length; i++) {
+    for ( i = 0; i < player.cells.length; i++) {
         var target = {
             x: player.x - player.cells[i].x + player.target.x,
             y: player.y - player.cells[i].y + player.target.y
@@ -210,9 +210,10 @@ function movePlayer(player) {
     player.x = x / player.cells.length;
     player.y = y / player.cells.length;
     // -----
-    for (var i = 0; i < shellArgs.length; i++) {
+    for (i = 0; i < shellArgs.length; i++) {
+        let borderCalc = player.shells[i].radius / 3;
         if (player.shells.hold) {
-            shellsArgs[i] += 2 * Math.PI / 36.0;
+            shellArgs[i] += 2 * Math.PI / 36.0;
             player.shells[i].x = player.x + Math.round(shellRadius * Math.cos(shellArgs[i]));
             player.shells[i].y = player.y + Math.round(shellRadius * Math.sin(shellArgs[i]));
         } else {
@@ -557,7 +558,7 @@ io.on('connection', function(socket) {
         }
         if (holdShellCnt == 0) return;
         var vArg = Math.atan2(currentPlayer.target.y - currentPlayer.y, currentPlayer.target.x - currentPlayer.x);
-        for (var i = 0; i < currentPlayer.shells.length; i++) {
+        for ( i = 0; i < currentPlayer.shells.length; i++) {
             // 撃っている感が弱くなる実装をしているので、要修正
             if (currentPlayer.shells[i].hold) {
                 currentPlayer.shells[i].vx = Math.round(50 * Math.cos(vArg));
@@ -572,7 +573,7 @@ io.on('connection', function(socket) {
         // Shellを再構成
         holdShellCnt = 0;
         var firstShellArg = Math.PI;
-        for (var i = 0; i < currentPlayer.shells.length; i++) {
+        for ( i = 0; i < currentPlayer.shells.length; i++) {
             if (currentPlayer.shells[i].hold) {
                 holdShellCnt++;
                 if (firstShellArg == Math.PI) {
@@ -583,7 +584,7 @@ io.on('connection', function(socket) {
         if(holdShellCnt>0) {
             var sumShellCnt = holdShellCnt;
             holdShellCnt = 0;
-            for (var i = 0; i < currentPlayer.shells.length; i++) {
+            for ( i = 0; i < currentPlayer.shells.length; i++) {
                 if (currentPlayer.shells.hold) {
                     currentPlayer.shells[i].x = currentPlayer.x + Math.round((currentPlayer.radius + currentPlayer.shells[i].radius + 20) * Math.cos(firstShellArg + holdShellCnt * 2 * Math.PI / sumShellCnt));
                     currentPlayer.shells[i].y = currentPlayer.y + Math.round((currentPlayer.radius + currentPlayer.shells[i].radius + 20) * Math.sin(firstShellArg + holdShellCnt * 2 * Math.PI / sumShellCnt));
@@ -662,10 +663,11 @@ function tickPlayer(currentPlayer) {
 
     function collisionCheck(collision) {
         // 甲羅同士の破壊のチェック
+        var j;
         var aUserNum = util.findIndex(users, collision.aUser.id);
         var bUserNum = util.findIndex(users, collision.bUser.id);
         for (var i = collision.aUser.shells.length; i >= 0; i--) {
-            for (var j = collision.bUser.shells.length; j >= 0; j--) {
+            for (j = collision.bUser.shells.length; j >= 0; j--) {
                 if (aUserNum == bUserNum && i == j) continue;
                 var aShell = collision.aUser.shells[i];
                 var bShell = collision.bUser.shells[j];
@@ -680,7 +682,7 @@ function tickPlayer(currentPlayer) {
         users[bUserNum].shells = collision.bUser.shells;
 
         // 自分の甲羅が敵プレイヤーを撃破しているか（ここで、敵プレイヤー=自分もあり得て、それは自殺。）
-        for (var i = 0; i < collision.aUser.shells.length; i++) {
+        for (i = 0; i < collision.aUser.shells.length; i++) {
             if (Math.max(collision.aUser.shells[i].radius, collision.bUser.radius) > Math.sqrt(Math.pow(collision.aUser.shells[i].x - collision.bUser.x, 2) + Math.pow(collision.aUser.shells[i].y - collision.bUser.y, 2))) {
                 console.log('[DEBUG] Killing user: ' + collision.bUser.id);
                 console.log('[DEBUG] Collision info:');
@@ -692,7 +694,7 @@ function tickPlayer(currentPlayer) {
                         users[bUserNum].cells.splice(collision.bUser.num, 1);
                     } else {
                         breakFood(collision.bUser);
-                        for (var j = 0; j < collision.bUser.shells.length; j++) {
+                        for (j = 0; j < collision.bUser.shells.length; j++) {
                             if (collision.bUser.shells[j].hold) {
                                 collision.bUser.shells[j].hold = false;
                             }
@@ -768,14 +770,14 @@ function tickPlayer(currentPlayer) {
             if (holdShellCnt == 0) {
                 firstShellArg = Math.random() * 2 * Math.PI;
                 holdShellCnt = currentPlayer.shells.length - beforeShellNum;
-                for (var i = beforeShellNum; i < currentPlayer.shells.length; i++) {
+                for (i = beforeShellNum; i < currentPlayer.shells.length; i++) {
                     currentPlayer.shells[i].x = currentPlayer.x + Math.round((currentPlayer.radius + currentPlayer.shells[i].radius + 20) * Math.cos(firstShellArg + (i - beforeShellNum) * 2 * Math.PI / holdShellCnt));
                     currentPlayer.shells[i].x = currentPlayer.y + Math.round((currentPlayer.radius + currentPlayer.shells[i].radius + 20) * Math.sin(firstShellArg + (i - beforeShellNum) * 2 * Math.PI / holdShellCnt));
                 }
             } else {
                 var sumShellCnt = holdShellCnt + (currentPlayer.shells.length - beforeShellNum);
                 holdShellCnt = 0;
-                for (var i = 0; i < currentPlayer.shells.length; i++) {
+                for (i = 0; i < currentPlayer.shells.length; i++) {
                     if (currentPlayer.shells.hold) {
                         currentPlayer.shells[i].x = currentPlayer.x + Math.round((currentPlayer.radius + currentPlayer.shells[i].radius + 20) * Math.cos(firstShellArg + holdShellCnt * 2 * Math.PI / sumShellCnt));
                         currentPlayer.shells[i].y = currentPlayer.y + Math.round((currentPlayer.radius + currentPlayer.shells[i].radius + 20) * Math.sin(firstShellArg + holdShellCnt * 2 * Math.PI / sumShellCnt));
