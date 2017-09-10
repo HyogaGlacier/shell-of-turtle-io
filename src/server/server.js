@@ -26,7 +26,7 @@ var users = [];
 var massFood = [];
 var food = [];
 var shells = [];
-var virus = [];
+//var virus = [];
 // -----
 var shells = [];
 var sockets = {};
@@ -73,6 +73,28 @@ function addFood(toAdd) {
         });
     }
 }
+
+function addShell(toAdd) {
+    while (toAdd--) {
+        var position = {
+            x: c.gameWidth * Math.random(),
+            y: c.gameHeight * Math.random()
+        };
+        shells.push({
+            // Make IDs unique.
+            id: ((new Date()).getTime() + '-' + shells.length) >>> 0,
+            x: position.x,
+            y: position.y,
+            vx: 0,
+            vy: 0,
+            hold: false,
+            radius: 20,
+            rad: 0,
+            hue: Math.round(Math.random() * 360)
+        });
+    }
+}
+
 
 function breakFood(breakUser) {
     var radius = util.massToRadius(c.foodMass);
@@ -220,30 +242,35 @@ function movePlayer(player) {
     player.x = x / player.cells.length;
     player.y = y / player.cells.length;
     // -----
-    var shellRadius = player.radius + 40;
+    var shellRadius = player.cells[0].radius + 40;
 
     for (i = 0; i < shellArgs.length; i++) {
         let borderCalc = player.shells[i].radius / 3;
-        console.log(player.shells[i].hold);
+        //  console.log(player);
         if (player.shells[i].hold) {
-            shellArgs[i] += 2 * Math.PI / 36.0;
-            player.shells[i].x = player.x + Math.round(shellRadius * Math.cos(shellArgs[i]));
-            player.shells[i].y = player.y + Math.round(shellRadius * Math.sin(shellArgs[i]));
-            console.log(player.x, player.shells[i].x, player.y, player.shells[i].y);
+            player.shells[i].rad += 2 * Math.PI / 36.0;
+            player.shells[i].x = player.x + Math.round(shellRadius * Math.cos(player.shells[i].rad));
+            player.shells[i].y = player.y + Math.round(shellRadius * Math.sin(player.shells[i].rad));
+            console.log(player.shells.rad);
+            //    console.log(shellRadius,shellArgs[i],player.x, player.shells[i].x, player.y, player.shells[i].y);
         } else {
             player.shells[i].x += player.shells[i].vx;
             player.shells[i].y += player.shells[i].vy;
             if (player.shells[i].x > c.gameWidth - borderCalc) {
                 player.shells[i].x = 2 * (c.gameWidth - borderCalc) - player.shells[i].x;
+                player.shells[i].vx *= -1;
             }
             if (player.shells[i].y > c.gameHeight - borderCalc) {
                 player.shells[i].y = 2 * (c.gameHeight - borderCalc) - player.shells[i].y;
+                player.shells[i].vy *= -1;
             }
             if (player.shells[i].x < borderCalc) {
                 player.shells[i].x = 2 * borderCalc - player.shells[i].x;
+                player.shells[i].vx *= -1;
             }
             if (player.shells[i].y < borderCalc) {
                 player.shells[i].y = 2 * borderCalc - player.shells[i].y;
+                player.shells[i].vy *= -1;
             }
         }
     }
@@ -284,8 +311,12 @@ function moveMass(mass) {
 function balanceMass() {
     var totalMass = food.length * c.foodMass +
         users
-        .map(function(u) { return u.massTotal; })
-        .reduce(function(pu, cu) { return pu + cu; }, 0);
+        .map(function(u) {
+            return u.massTotal;
+        })
+        .reduce(function(pu, cu) {
+            return pu + cu;
+        }, 0);
 
     var massDiff = c.gameMass - totalMass;
     var maxFoodDiff = c.maxFood - food.length;
@@ -301,6 +332,23 @@ function balanceMass() {
         //console.log('[DEBUG] Removing ' + foodToRemove + ' food from level!');
         removeFood(foodToRemove);
         //console.log('[DEBUG] Mass rebalanced!');
+    }
+
+    var shellCnt = shells.length;
+    for (var i = 0; i < users.length; i++){
+        shellCnt += users.shells[i].length;
+    }
+    if (shellCnt < 10) {
+        addShell(10 - shellCnt);
+        shellCnt = 10;
+    }
+    if (shellCnt < 3 * users.length) {
+        addShell(3 * users.length - shellCnt);
+        shellCnt = 3 * users.length;
+    }
+    while (shellCnt > 3 * users.length&&shells.length>0) {
+        shells.splice(0, 1);
+        shellCnt--;
     }
 
 
@@ -382,17 +430,20 @@ io.on('connection', function(socket) {
                     radius: radius
                 }];
                 // -----
+                console.log("rad:", radius);
                 var tmprand = Math.random();
                 player.shells = [{
                     id: player.id,
                     hue: playerColor,
                     x: position.x + (radius + 30) * Math.cos(2 * Math.PI * tmprand),
                     y: position.y + (radius + 30) * Math.sin(2 * Math.PI * tmprand),
+                    rad: tmprand,
                     hold: true,
                     vx: 0,
                     vy: 0,
                     radius: 20
                 }];
+                console.log(player.cells, player.shells);
                 player.massTotal = c.defaultPlayerMass;
             } else {
                 player.cells = [];
@@ -404,7 +455,9 @@ io.on('connection', function(socket) {
             currentPlayer.lastHeartbeat = new Date().getTime();
             users.push(currentPlayer);
 
-            io.emit('playerJoin', { name: currentPlayer.name });
+            io.emit('playerJoin', {
+                name: currentPlayer.name
+            });
 
             socket.emit('gameSetup', {
                 gameWidth: c.gameWidth,
@@ -436,7 +489,9 @@ io.on('connection', function(socket) {
             users.splice(util.findIndex(users, currentPlayer.id), 1);
         console.log('[INFO] User ' + currentPlayer.name + ' disconnected!');
 
-        socket.broadcast.emit('playerDisconnect', { name: currentPlayer.name });
+        socket.broadcast.emit('playerDisconnect', {
+            name: currentPlayer.name
+        });
     });
 
     socket.on('playerChat', function(data) {
@@ -445,7 +500,10 @@ io.on('connection', function(socket) {
         if (c.logChat === 1) {
             console.log('[CHAT] [' + (new Date()).getHours() + ':' + (new Date()).getMinutes() + '] ' + _sender + ': ' + _message);
         }
-        socket.broadcast.emit('serverSendPlayerChat', { sender: _sender, message: _message.substring(0, 35) });
+        socket.broadcast.emit('serverSendPlayerChat', {
+            sender: _sender,
+            message: _message.substring(0, 35)
+        });
     });
 
     socket.on('pass', function(data) {
@@ -536,7 +594,8 @@ io.on('connection', function(socket) {
             }
         }
     });
-    socket.on('2', function(virusCell) {
+    /*
+    socket.on('2', function (virusCell) {
         function splitCell(cell) {
             if (cell.mass >= c.defaultPlayerMass * 2) {
                 cell.mass = cell.mass / 2;
@@ -567,6 +626,7 @@ io.on('connection', function(socket) {
             currentPlayer.lastSplit = new Date().getTime();
         }
     });
+    */
     socket.on('3', function() {
         // ランダムに1発発射、hold=falseに
         var holdShellCnt = 0;
@@ -721,7 +781,9 @@ function tickPlayer(currentPlayer) {
                             shells.push(collision.bUser.shells[j]);
                         }
                         users.splice(bUserNum, 1);
-                        io.emit('playerDied', { name: collision.bUser.name });
+                        io.emit('playerDied', {
+                            name: collision.bUser.name
+                        });
                         sockets[collision.bUser.id].emit('RIP');
                     }
                 }
@@ -759,15 +821,21 @@ function tickPlayer(currentPlayer) {
         );
 
         var foodEaten = food.map(funcFood)
-            .reduce(function(a, b, c) { return b ? a.concat(c) : a; }, []);
+            .reduce(function(a, b, c) {
+                return b ? a.concat(c) : a;
+            }, []);
 
         foodEaten.forEach(deleteFood);
 
         var massEaten = massFood.map(eatMass)
-            .reduce(function(a, b, c) { return b ? a.concat(c) : a; }, []);
+            .reduce(function(a, b, c) {
+                return b ? a.concat(c) : a;
+            }, []);
 
         var shellGot = shells.map(getShell)
-            .reduce(function(a, b, c) { return b ? a.concat(c) : a; }, []);
+            .reduce(function(a, b, c) {
+                return b ? a.concat(c) : a;
+            }, []);
 
         var beforeShellNum = currentPlayer.shells.length;
         shellGot.forEach(deleteShells);
@@ -853,7 +921,9 @@ function moveloop() {
 
 function gameloop() {
     if (users.length > 0) {
-        users.sort(function(a, b) { return b.massTotal - a.massTotal; });
+        users.sort(function(a, b) {
+            return b.massTotal - a.massTotal;
+        });
 
         var topUsers = [];
 
@@ -905,18 +975,23 @@ function sendUpdates() {
                     return f;
                 }
             })
-            .filter(function(f) { return f; });
+            .filter(function(f) {
+                return f;
+            });
 
-        var visibleVirus = virus
-            .map(function(f) {
-                if (f.x > u.x - u.screenWidth / 2 - f.radius &&
-                    f.x < u.x + u.screenWidth / 2 + f.radius &&
-                    f.y > u.y - u.screenHeight / 2 - f.radius &&
-                    f.y < u.y + u.screenHeight / 2 + f.radius) {
-                    return f;
-                }
-            })
-            .filter(function(f) { return f; });
+        var visibleVirus = {};
+        /*virus
+                    .map(function (f) {
+                        if (f.x > u.x - u.screenWidth / 2 - f.radius &&
+                            f.x < u.x + u.screenWidth / 2 + f.radius &&
+                            f.y > u.y - u.screenHeight / 2 - f.radius &&
+                            f.y < u.y + u.screenHeight / 2 + f.radius) {
+                            return f;
+                        }
+                    })
+                    .filter(function (f) {
+                        return f;
+                    });*/
 
         var visibleMass = massFood
             .map(function(f) {
@@ -927,7 +1002,9 @@ function sendUpdates() {
                     return f;
                 }
             })
-            .filter(function(f) { return f; });
+            .filter(function(f) {
+                return f;
+            });
 
         var visibleCells = users
             .map(function(f) {
@@ -962,7 +1039,9 @@ function sendUpdates() {
                     }
                 }
             })
-            .filter(function(f) { return f; });
+            .filter(function(f) {
+                return f;
+            });
 
         var visibleShells = shells
             .map(function(f) {
@@ -973,7 +1052,9 @@ function sendUpdates() {
                     return f;
                 }
             })
-            .filter(function(f) { return f; });
+            .filter(function(f) {
+                return f;
+            });
 
         sockets[u.id].emit('serverTellPlayerMove', visibleCells, visibleFood, visibleMass, visibleVirus, visibleShells);
         if (leaderboardChanged) {
@@ -995,4 +1076,6 @@ var ipaddress = process.env.OPENSHIFT_NODEJS_IP || process.env.IP || c.host;
 var serverport = process.env.OPENSHIFT_NODEJS_PORT || process.env.PORT || c.port;
 http.listen(serverport, ipaddress, function() {
     console.log('[DEBUG] Listening on ' + ipaddress + ':' + serverport);
+});    console.log('[DEBUG] Listening on ' + ipaddress + ':' + serverport);
 });
+
