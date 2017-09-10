@@ -136,7 +136,7 @@ function movePlayer(player) {
         shellRadius = Math.round(Math.sqrt(Math.pow(player.shells[0].y - player.y, 2) + Math.pow(player.shells[0].x - player.x, 2)));
     }
 
-    for (i = 0; i < player.cells.length; i++) {
+    for ( i = 0; i < player.cells.length; i++) {
         var target = {
             x: player.x - player.cells[i].x + player.target.x,
             y: player.y - player.cells[i].y + player.target.y
@@ -550,7 +550,7 @@ io.on('connection', function(socket) {
             currentPlayer.lastSplit = new Date().getTime();
         }
     });
-    socket.on('3', function() {
+    socket.on('3', function () {
         // ランダムに1発発射、hold=falseに
         var holdShellCnt = 0;
         for (var i = 0; i < currentPlayer.shells.length; i++) {
@@ -558,7 +558,7 @@ io.on('connection', function(socket) {
         }
         if (holdShellCnt == 0) return;
         var vArg = Math.atan2(currentPlayer.target.y - currentPlayer.y, currentPlayer.target.x - currentPlayer.x);
-        for (i = 0; i < currentPlayer.shells.length; i++) {
+        for ( i = 0; i < currentPlayer.shells.length; i++) {
             // 撃っている感が弱くなる実装をしているので、要修正
             if (currentPlayer.shells[i].hold) {
                 currentPlayer.shells[i].vx = Math.round(50 * Math.cos(vArg));
@@ -573,7 +573,7 @@ io.on('connection', function(socket) {
         // Shellを再構成
         holdShellCnt = 0;
         var firstShellArg = Math.PI;
-        for (i = 0; i < currentPlayer.shells.length; i++) {
+        for ( i = 0; i < currentPlayer.shells.length; i++) {
             if (currentPlayer.shells[i].hold) {
                 holdShellCnt++;
                 if (firstShellArg == Math.PI) {
@@ -581,10 +581,10 @@ io.on('connection', function(socket) {
                 }
             }
         }
-        if (holdShellCnt > 0) {
+        if(holdShellCnt>0) {
             var sumShellCnt = holdShellCnt;
             holdShellCnt = 0;
-            for (i = 0; i < currentPlayer.shells.length; i++) {
+            for ( i = 0; i < currentPlayer.shells.length; i++) {
                 if (currentPlayer.shells.hold) {
                     currentPlayer.shells[i].x = currentPlayer.x + Math.round((currentPlayer.radius + currentPlayer.shells[i].radius + 20) * Math.cos(firstShellArg + holdShellCnt * 2 * Math.PI / sumShellCnt));
                     currentPlayer.shells[i].y = currentPlayer.y + Math.round((currentPlayer.radius + currentPlayer.shells[i].radius + 20) * Math.sin(firstShellArg + holdShellCnt * 2 * Math.PI / sumShellCnt));
@@ -874,13 +874,13 @@ function gameloop() {
 }
 
 function sendUpdates() {
-    users.forEach(function (u) {
+    users.forEach(function(u) {
         // center the view if x/y is undefined, this will happen for spectators
         u.x = u.x || c.gameWidth / 2;
         u.y = u.y || c.gameHeight / 2;
 
         var visibleFood = food
-            .map(function (f) {
+            .map(function(f) {
                 if (f.x > u.x - u.screenWidth / 2 - 20 &&
                     f.x < u.x + u.screenWidth / 2 + 20 &&
                     f.y > u.y - u.screenHeight / 2 - 20 &&
@@ -888,31 +888,9 @@ function sendUpdates() {
                     return f;
                 }
             })
-            .filter(function (f) { return f; });
+            .filter(function(f) { return f; });
 
         var visibleVirus = virus
-            .map(function (f) {
-                if (f.x > u.x - u.screenWidth / 2 - f.radius &&
-                    f.x < u.x + u.screenWidth / 2 + f.radius &&
-                    f.y > u.y - u.screenHeight / 2 - f.radius &&
-                    f.y < u.y + u.screenHeight / 2 + f.radius) {
-                    return f;
-                }
-            })
-            .filter(function (f) { return f; });
-
-        var visibleMass = massFood
-            .map(function (f) {
-                if (f.x + f.radius > u.x - u.screenWidth / 2 - 20 &&
-                    f.x - f.radius < u.x + u.screenWidth / 2 + 20 &&
-                    f.y + f.radius > u.y - u.screenHeight / 2 - 20 &&
-                    f.y - f.radius < u.y + u.screenHeight / 2 + 20) {
-                    return f;
-                }
-            })
-            .filter(function (f) { return f; });
-
-        var visibleCells = users
             .map(function(f) {
                 if (f.x > u.x - u.screenWidth / 2 - f.radius &&
                     f.x < u.x + u.screenWidth / 2 + f.radius &&
@@ -920,6 +898,49 @@ function sendUpdates() {
                     f.y < u.y + u.screenHeight / 2 + f.radius) {
                     return f;
                 }
+            })
+            .filter(function(f) { return f; });
+
+        var visibleMass = massFood
+            .map(function(f) {
+                if (f.x + f.radius > u.x - u.screenWidth / 2 - 20 &&
+                    f.x - f.radius < u.x + u.screenWidth / 2 + 20 &&
+                    f.y + f.radius > u.y - u.screenHeight / 2 - 20 &&
+                    f.y - f.radius < u.y + u.screenHeight / 2 + 20) {
+                    return f;
+                }
+            })
+            .filter(function(f) { return f; });
+
+        var visibleCells = users
+            .map(function (f) {
+                if (f.x > u.x - u.screenWidth / 2 - f.radius &&
+                        f.x < u.x + u.screenWidth / 2 + f.radius &&
+                        f.y > u.y - u.screenHeight / 2 - f.radius &&
+                        f.y < u.y + u.screenHeight / 2 + f.radius) {
+
+                    if (f.id !== u.id) {
+                        return {
+                            id: f.id,
+                            x: f.x,
+                            y: f.y,
+                            cells: f.cells,
+                            massTotal: Math.round(f.massTotal),
+                            hue: f.hue,
+                            name: f.name
+                        };
+                    } else {
+                        //console.log("Nombre: " + f.name + " Es Usuario");
+                        return {
+                            x: f.x,
+                            y: f.y,
+                            cells: f.cells,
+                            massTotal: Math.round(f.massTotal),
+                            hue: f.hue,
+                        };
+                    }
+                }
+                return {};
             })
             .filter(function(f) { return f; });
 
