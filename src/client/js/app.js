@@ -272,7 +272,7 @@ function setupSocket(socket) {
             player.yoffset = isNaN(yoffset) ? 0 : yoffset;
         }
         users = userData;
-        console.log(users);
+        //console.log(users);
         foods = foodsList;
         shells = shellsList;
 
@@ -607,7 +607,7 @@ function gameLoop() {
             foods.forEach(drawFood);
             fireFood.forEach(drawFireFood);
             shells.forEach(drawShell);
-            console.log("883r",shells);
+            //console.log("883r",shells);
 
 
             if (global.borderDraw) {
