@@ -169,6 +169,10 @@ function movePlayer(player) {
         }
     }
 
+    var prepos={
+        x: player.x,
+        y: player.y
+    };
     for (i = 0; i < player.cells.length; i++) {
         var target = {
             x: player.x - player.cells[i].x + player.target.x,
@@ -242,6 +246,8 @@ function movePlayer(player) {
     }
     player.x = x / player.cells.length;
     player.y = y / player.cells.length;
+    player.rad = Math.atan2(player.y-prepos.y,player.x-prepos.x);
+    if (isNan(player.rad))  player.rad=0;
     // -----
     var shellRadius = player.cells[0].radius + 40;
 
@@ -433,6 +439,7 @@ io.on('connection', function(socket) {
                     mass: c.defaultPlayerMass,
                     x: position.x,
                     y: position.y,
+                    rad: 0,
                     radius: radius
                 }];
                 // -----
@@ -640,12 +647,17 @@ io.on('connection', function(socket) {
             if (currentPlayer.shells[i].hold) holdShellCnt++;
         }
         if (holdShellCnt == 0) return;
-        var vArg = Math.atan2(currentPlayer.target.y - currentPlayer.y, currentPlayer.target.x - currentPlayer.x);
+        var vArg = player.rad;
         for (i = 0; i < currentPlayer.shells.length; i++) {
             // 撃っている感が弱くなる実装をしているので、要修正
             if (currentPlayer.shells[i].hold) {
+<<<<<<< HEAD
                 currentPlayer.shells[i].vx = Math.round(50 * Math.cos(vArg))/10;
                 currentPlayer.shells[i].vy = Math.round(50 * Math.sin(vArg))/10;
+=======
+                currentPlayer.shells[i].vx = Math.round(10 * Math.cos(vArg));
+                currentPlayer.shells[i].vy = Math.round(10 * Math.sin(vArg));
+>>>>>>> ba56068d2242045bae6745914d64ec32b5951678
                 currentPlayer.shells[i].x = currentPlayer.x;// + Math.round((currentPlayer.radius + 30 + currentPlayer.shells[i].radius) * Math.cos(vArg));
                 currentPlayer.shells[i].y = currentPlayer.y;//+ Math.round((currentPlayer.radius + 30 + currentPlayer.shells[i].radius) * Math.sin(vArg));
                 currentPlayer.shells[i].hold = false;
@@ -660,7 +672,7 @@ io.on('connection', function(socket) {
             if (currentPlayer.shells[i].hold) {
                 holdShellCnt++;
                 if (firstShellArg == Math.PI) {
-                    firstShellArg = Math.atan2(currentPlayer.shells[i].y - currentPlayer.y, currentPlayer.shells[i].x - currentPlayer.x);
+                    firstShellArg = currentPlayer.shells[i].rad;
                 }
             }
         }
@@ -670,10 +682,16 @@ io.on('connection', function(socket) {
             var tmp=0,cc = util.filter(currentPlayer.shells,function(e){return e.hold;});
             for (i = 0; i < currentPlayer.shells.length; i++) {
                 if (currentPlayer.shells[i].hold) {
+<<<<<<< HEAD
                     currentPlayer.shells[i].x = currentPlayer.x + Math.round((currentPlayer.radius + currentPlayer.shells[i].radius + 20) * Math.cos(currentPlayer.shells[0].rad + tmp/cc * 2 * Math.PI ));
                     currentPlayer.shells[i].y = currentPlayer.y + Math.round((currentPlayer.radius + currentPlayer.shells[i].radius + 20) * Math.sin(currentPlayer.shells[0].rad + tmp/cc * 2 * Math.PI ));
                     tmp++;
                     console.log("update");
+=======
+                    currentPlayer.shells[i].x = currentPlayer.x + (currentPlayer.radius + currentPlayer.shells[i].radius + 20) * Math.cos(firstShellArg + holdShellCnt * 2 * Math.PI / sumShellCnt);
+                    currentPlayer.shells[i].y = currentPlayer.y + (currentPlayer.radius + currentPlayer.shells[i].radius + 20) * Math.sin(firstShellArg + holdShellCnt * 2 * Math.PI / sumShellCnt);
+                    holdShellCnt++;
+>>>>>>> ba56068d2242045bae6745914d64ec32b5951678
                 }
             }
         }
@@ -749,6 +767,7 @@ function tickPlayer(currentPlayer) {
     }
 
     function collisionCheck(collision) {
+        console.log(collision);
         // 甲羅同士の破壊のチェック
         var j;
         var aUserNum = util.findIndex(users, collision.aUser.id);
@@ -858,7 +877,7 @@ function tickPlayer(currentPlayer) {
                 if (currentPlayer.shells[i].hold) {
                     holdShellCnt++;
                     if (firstShellArg == Math.PI) {
-                        firstShellArg = Math.atan2(currentPlayer.shells[i].y - currentPlayer.y, currentPlayer.shells[i].x - currentPlayer.x);
+                        firstShellArg = currentPlayer.shells[i].rad;
                     }
                 }
             }
@@ -866,16 +885,17 @@ function tickPlayer(currentPlayer) {
                 firstShellArg = Math.random() * 2 * Math.PI;
                 holdShellCnt = currentPlayer.shells.length - beforeShellNum;
                 for (i = beforeShellNum; i < currentPlayer.shells.length; i++) {
-                    currentPlayer.shells[i].x = currentPlayer.x + Math.round((currentPlayer.radius + currentPlayer.shells[i].radius + 20) * Math.cos(firstShellArg + (i - beforeShellNum) * 2 * Math.PI / holdShellCnt));
-                    currentPlayer.shells[i].x = currentPlayer.y + Math.round((currentPlayer.radius + currentPlayer.shells[i].radius + 20) * Math.sin(firstShellArg + (i - beforeShellNum) * 2 * Math.PI / holdShellCnt));
+                    currentPlayer.shells[i].x = currentPlayer.x + (currentPlayer.radius + currentPlayer.shells[i].radius + 20) * Math.cos(firstShellArg + (i - beforeShellNum) * 2 * Math.PI / holdShellCnt);
+                    currentPlayer.shells[i].x = currentPlayer.y + (currentPlayer.radius + currentPlayer.shells[i].radius + 20) * Math.sin(firstShellArg + (i - beforeShellNum) * 2 * Math.PI / holdShellCnt);
                 }
             } else {
                 var sumShellCnt = holdShellCnt + (currentPlayer.shells.length - beforeShellNum);
                 holdShellCnt = 0;
                 for (i = 0; i < currentPlayer.shells.length; i++) {
                     if (currentPlayer.shells[i].hold) {
-                        currentPlayer.shells[i].x = currentPlayer.x + Math.round((currentPlayer.radius + currentPlayer.shells[i].radius + 20) * Math.cos(firstShellArg + holdShellCnt * 2 * Math.PI / sumShellCnt));
-                        currentPlayer.shells[i].y = currentPlayer.y + Math.round((currentPlayer.radius + currentPlayer.shells[i].radius + 20) * Math.sin(firstShellArg + holdShellCnt * 2 * Math.PI / sumShellCnt));
+                        currentPlayer.shells[i].x = currentPlayer.x + (currentPlayer.radius + currentPlayer.shells[i].radius + 20) * Math.cos(firstShellArg + holdShellCnt * 2 * Math.PI / sumShellCnt);
+                        currentPlayer.shells[i].y = currentPlayer.y + (currentPlayer.radius + currentPlayer.shells[i].radius + 20) * Math.sin(firstShellArg + holdShellCnt * 2 * Math.PI / sumShellCnt);
+                        holdShellCnt++;
                     }
                 }
             }
@@ -910,13 +930,7 @@ function tickPlayer(currentPlayer) {
         currentCell.radius = util.massToRadius(currentCell.mass);
         playerCircle.r = currentCell.radius;
 
-        tree.clear();
-        users.forEach(tree.put);
-        var playerCollisions = [];
-
-        var otherUsers = tree.get(currentPlayer, check);
-
-        playerCollisions.forEach(collisionCheck);
+        users.forEach(collisionCheck);
     }
 }
 
