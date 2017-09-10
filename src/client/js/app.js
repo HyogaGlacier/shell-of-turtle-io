@@ -417,6 +417,7 @@ function drawPlayers(order) {
             xstore[i] = x;
             ystore[i] = y;
         }
+        //console.log(cellCurrent.x,circle.x,circle.y);
         var numbers_loop = 6;//.map();
         var tt = 2*Math.PI/numbers_loop;
         var cycle =2;
@@ -429,18 +430,17 @@ function drawPlayers(order) {
           drawCircle(x,y,10,32);
         }*/
 /*userごとに色を返す*/
-        console.log("user:",users);
         for (i=0;i<users.length;++i){
-          console.log("player:",i,users[i].shells[0].x);
           graph.strokeStyle = 'hsl(' + users[i].hue + ', 100%, 45%)';
           graph.fillStyle = 'hsl(' + users[i].hue + ', 100%, 50%)';
           for (var ww=0;ww<users[i].shells.length;++ww){
-            //console.log(ww,i,users[i].shells[ww]);
-            console.log(users[i].shells[ww].x,
-                        users[i].shells[ww].y,
-                        player.x,player.y);
+
+
+            var xt =users[i].shells[ww].x - player.x +   (global.screenWidth / 2);
+            var yt =users[i].shells[ww].y - player.y +   (global.screenHeight / 2);
+
             graph.beginPath();
-            graph.arc(users[i].shells[ww].x,users[i].shells[ww].y,users[i].shells[ww].radius,0,2*Math.PI,false);
+            graph.arc(xt,yt,users[i].shells[ww].radius,0,2*Math.PI,false);
             graph.closePath();
             graph.stroke();
             graph.fill();
@@ -607,7 +607,8 @@ function gameLoop() {
             foods.forEach(drawFood);
             fireFood.forEach(drawFireFood);
             shells.forEach(drawShell);
-            viruses.forEach(drawVirus);
+            console.log("883r",shells);
+
 
             if (global.borderDraw) {
                 drawborder();
