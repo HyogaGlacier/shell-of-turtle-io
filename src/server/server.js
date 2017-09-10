@@ -595,7 +595,7 @@ io.on('connection', function(socket) {
             var sumShellCnt = holdShellCnt;
             holdShellCnt = 0;
             for (i = 0; i < currentPlayer.shells.length; i++) {
-                if (currentPlayer.shells.hold) {
+                if (currentPlayer.shells[i].hold) {
                     currentPlayer.shells[i].x = currentPlayer.x + Math.round((currentPlayer.radius + currentPlayer.shells[i].radius + 20) * Math.cos(firstShellArg + holdShellCnt * 2 * Math.PI / sumShellCnt));
                     currentPlayer.shells[i].y = currentPlayer.y + Math.round((currentPlayer.radius + currentPlayer.shells[i].radius + 20) * Math.sin(firstShellArg + holdShellCnt * 2 * Math.PI / sumShellCnt));
                 }
@@ -788,7 +788,7 @@ function tickPlayer(currentPlayer) {
                 var sumShellCnt = holdShellCnt + (currentPlayer.shells.length - beforeShellNum);
                 holdShellCnt = 0;
                 for (i = 0; i < currentPlayer.shells.length; i++) {
-                    if (currentPlayer.shells.hold) {
+                    if (currentPlayer.shells[i].hold) {
                         currentPlayer.shells[i].x = currentPlayer.x + Math.round((currentPlayer.radius + currentPlayer.shells[i].radius + 20) * Math.cos(firstShellArg + holdShellCnt * 2 * Math.PI / sumShellCnt));
                         currentPlayer.shells[i].y = currentPlayer.y + Math.round((currentPlayer.radius + currentPlayer.shells[i].radius + 20) * Math.sin(firstShellArg + holdShellCnt * 2 * Math.PI / sumShellCnt));
                     }
