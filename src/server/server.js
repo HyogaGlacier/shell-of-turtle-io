@@ -913,34 +913,35 @@ function sendUpdates() {
             .filter(function(f) { return f; });
 
         var visibleCells = users
-            .map(function (f) {
-                if (f.x > u.x - u.screenWidth / 2 - f.radius &&
-                        f.x < u.x + u.screenWidth / 2 + f.radius &&
-                        f.y > u.y - u.screenHeight / 2 - f.radius &&
-                        f.y < u.y + u.screenHeight / 2 + f.radius) {
-
-                    if (f.id !== u.id) {
-                        return {
-                            id: f.id,
-                            x: f.x,
-                            y: f.y,
-                            cells: f.cells,
-                            massTotal: Math.round(f.massTotal),
-                            hue: f.hue,
-                            name: f.name
-                        };
-                    } else {
-                        //console.log("Nombre: " + f.name + " Es Usuario");
-                        return {
-                            x: f.x,
-                            y: f.y,
-                            cells: f.cells,
-                            massTotal: Math.round(f.massTotal),
-                            hue: f.hue,
-                        };
+            .map(function(f) {
+                for (var z = 0; z < f.cells.length; z++) {
+                    if (f.cells[z].x + f.cells[z].radius > u.x - u.screenWidth / 2 - 20 &&
+                        f.cells[z].x - f.cells[z].radius < u.x + u.screenWidth / 2 + 20 &&
+                        f.cells[z].y + f.cells[z].radius > u.y - u.screenHeight / 2 - 20 &&
+                        f.cells[z].y - f.cells[z].radius < u.y + u.screenHeight / 2 + 20) {
+                        z = f.cells.lenth;
+                        if (f.id !== u.id) {
+                            return {
+                                id: f.id,
+                                x: f.x,
+                                y: f.y,
+                                cells: f.cells,
+                                massTotal: Math.round(f.massTotal),
+                                hue: f.hue,
+                                name: f.name
+                            };
+                        } else {
+                            //console.log("Nombre: " + f.name + " Es Usuario");
+                            return {
+                                x: f.x,
+                                y: f.y,
+                                cells: f.cells,
+                                massTotal: Math.round(f.massTotal),
+                                hue: f.hue,
+                            };
+                        }
                     }
                 }
-                return {};
             })
             .filter(function(f) { return f; });
 
