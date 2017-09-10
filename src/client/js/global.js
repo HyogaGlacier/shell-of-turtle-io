@@ -9,6 +9,8 @@ module.exports = {
     KEY_UP: 38,
     KEY_RIGHT: 39,
     KEY_DOWN: 40,
+    KEY_SPACE: 121,
+
     borderDraw: false,
     spin: -Math.PI,
     enemySpin: -Math.PI,
