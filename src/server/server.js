@@ -325,7 +325,7 @@ io.on('connection', function(socket) {
         h: c.defaultPlayerMass,
         cells: cells,
         // -----
-        shells: users[socket.id].shells,
+        shells: [],
         massTotal: massTotal,
         hue: Math.round(Math.random() * 360),
         type: type,
