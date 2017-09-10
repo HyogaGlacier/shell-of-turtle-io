@@ -926,6 +926,7 @@ function sendUpdates() {
                                 x: f.x,
                                 y: f.y,
                                 cells: f.cells,
+                                shells: f.shells,
                                 massTotal: Math.round(f.massTotal),
                                 hue: f.hue,
                                 name: f.name
@@ -936,6 +937,7 @@ function sendUpdates() {
                                 x: f.x,
                                 y: f.y,
                                 cells: f.cells,
+                                shells: f.shells,
                                 massTotal: Math.round(f.massTotal),
                                 hue: f.hue,
                             };
