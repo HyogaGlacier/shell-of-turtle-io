@@ -648,8 +648,8 @@ io.on('connection', function(socket) {
         for (i = 0; i < currentPlayer.shells.length; i++) {
             // 撃っている感が弱くなる実装をしているので、要修正
             if (currentPlayer.shells[i].hold) {
-                currentPlayer.shells[i].vx = Math.round(50 * Math.cos(vArg));
-                currentPlayer.shells[i].vy = Math.round(50 * Math.sin(vArg));
+                currentPlayer.shells[i].vx = Math.round(10 * Math.cos(vArg));
+                currentPlayer.shells[i].vy = Math.round(10 * Math.sin(vArg));
                 currentPlayer.shells[i].x = currentPlayer.x;// + Math.round((currentPlayer.radius + 30 + currentPlayer.shells[i].radius) * Math.cos(vArg));
                 currentPlayer.shells[i].y = currentPlayer.y;//+ Math.round((currentPlayer.radius + 30 + currentPlayer.shells[i].radius) * Math.sin(vArg));
                 currentPlayer.shells[i].hold = false;
@@ -914,13 +914,7 @@ function tickPlayer(currentPlayer) {
         currentCell.radius = util.massToRadius(currentCell.mass);
         playerCircle.r = currentCell.radius;
 
-        tree.clear();
-        users.forEach(tree.put);
-        var playerCollisions = [];
-
-        var otherUsers = tree.get(currentPlayer, check);
-
-        playerCollisions.forEach(collisionCheck);
+        users.forEach(collisionCheck);
     }
 }
 
