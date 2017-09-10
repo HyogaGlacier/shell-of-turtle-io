@@ -349,7 +349,7 @@ function balanceMass() {
         addShell(3 * users.length - shellCnt);
         shellCnt = 3 * users.length;
     }
-    while (shellCnt > 3 * users.length&&shells.length>0) {
+    while (shellCnt > Math.max(10,3 * users.length&&shells.length>0)) {
         shells.splice(0, 1);
         shellCnt--;
     }
@@ -702,6 +702,7 @@ function tickPlayer(currentPlayer) {
     }
 
     function getShell(gotShell) {
+        if (2 * Math.PI * (currentPlayer.radius) < (currentPlayer.shells.length + 1) * 80) return false;
         return SAT.pointInCircle(new V(gotShell.x, gotShell.y), playerCircle);
     }
 
