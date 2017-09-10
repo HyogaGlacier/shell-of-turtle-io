@@ -256,6 +256,7 @@ function setupSocket(socket) {
                 i = userData.length;
             }
         }
+        console.log("userData:",userData);
         if(global.playerType == 'player') {
             var xoffset = player.x - playerData.x;
             var yoffset = player.y - playerData.y;
@@ -265,7 +266,7 @@ function setupSocket(socket) {
             player.hue = playerData.hue;
             player.massTotal = playerData.massTotal;
             player.cells = playerData.cells;
-            console.log(playerData,playerData.shells);
+            console.log("playerData:",playerData,playerData.shells);
             player.shells =playerData.shells;
             player.xoffset = isNaN(xoffset) ? 0 : xoffset;
             player.yoffset = isNaN(yoffset) ? 0 : yoffset;
@@ -360,9 +361,9 @@ function drawShell(shell) {
     graph.strokeStyle = 'hsl(' + shell.hue + ', 100%, 45%)';
     graph.fillStyle = 'hsl(' + shell.hue + ', 100%, 50%)';
     graph.lineWidth = playerConfig.border+10;
-    drawCircle(mass.x - player.x + global.screenWidth / 2,
-               mass.y - player.y + global.screenHeight / 2,
-               mass.radius-5 ,32 );
+    drawCircle(shell.x - player.x + global.screenWidth / 2,
+               shell.y - player.y + global.screenHeight / 2,
+               shell.radius-5 ,32 );
 }
 
 function drawPlayers(order) {
