@@ -256,7 +256,7 @@ function setupSocket(socket) {
                 i = userData.length;
             }
         }
-        console.log("userData:",userData);
+      //  console.log("userData:",userData);
         if(global.playerType == 'player') {
             var xoffset = player.x - playerData.x;
             var yoffset = player.y - playerData.y;
@@ -266,7 +266,7 @@ function setupSocket(socket) {
             player.hue = playerData.hue;
             player.massTotal = playerData.massTotal;
             player.cells = playerData.cells;
-            console.log("playerData:",playerData,playerData.shells);
+        //    console.log("playerData:",playerData,playerData.shells);
             player.shells =playerData.shells;
             player.xoffset = isNaN(xoffset) ? 0 : xoffset;
             player.yoffset = isNaN(yoffset) ? 0 : yoffset;
@@ -428,12 +428,22 @@ function drawPlayers(order) {
           drawCircle(x,y,10,32);
         }*/
 /*userごとに色を返す*/
-        console.log("turtle",player.shells);
+        console.log("turtle:",player.shells.length);
         for (i=0;i<player.shells.length;++i){
-          var player_now = user[util.findIndex(users, player.shells.id)];
+          var id;
+          for (j=0;j<users.length;++j){
+            if (users[i].shells.id === player.shells.id){
+              id =i;
+              console.log("OK");
+              break;
+            }
+          }
+        //  users.findIndex();
+          var player_now = users[id];
           graph.strokeStyle = 'hsl(' + player_now.hue + ', 100%, 45%)';
           graph.fillStyle = 'hsl(' + player_now.hue + ', 100%, 50%)';
-          drawCircle(player.shells[i].x,player.shells[i].y,player.radius,32);
+          drawCircle(player.shells[i].x/100,player.shells[i].y/100,player.shells[i].radius,32);
+          console.log(player.shells[i].radius,player.shells[i].x,player.shells[i].y);
         }
         graph.strokeStyle = 'hsl(' + userCurrent.hue + ', 100%, 45%)';
         graph.fillStyle = 'hsl(' + userCurrent.hue + ', 100%, 50%)';
