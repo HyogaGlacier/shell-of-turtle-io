@@ -83,6 +83,17 @@ exports.findIndex = function(arr, id) {
 
     return -1;
 };
+exports.filter = function(arr, f) {
+    var len = arr.length;
+    var tmp=0;
+    while (len--) {
+        if (f (arr[len]) ) {
+            ++tmp;
+        }
+    }
+
+    return tmp;
+};
 
 exports.randomColor = function() {
     var color = '#' + ('00000' + (Math.random() * (1 << 24) | 0).toString(16)).slice(-6);

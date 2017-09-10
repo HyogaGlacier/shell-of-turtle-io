@@ -245,14 +245,17 @@ function movePlayer(player) {
     // -----
     var shellRadius = player.cells[0].radius + 40;
 
+    var tmp=0,cc = util.filter(player.shells,function(e){return e.hold;});
+    player.shells[0].rad += 2 * Math.PI / 36.0;
     for (i = 0; i < shellArgs.length; i++) {
         let borderCalc = player.shells[i].radius / 3;
-        //  console.log(player);
+
         if (player.shells[i].hold) {
-            player.shells[i].rad += 2 * Math.PI / 36.0;
-            player.shells[i].x = player.x + Math.round(shellRadius * Math.cos(player.shells[i].rad));
-            player.shells[i].y = player.y + Math.round(shellRadius * Math.sin(player.shells[i].rad));
-            console.log(player.shells.rad);
+
+            //player.shells[i].rad += 2 * Math.PI / 36.0;
+            player.shells[i].x = player.x + Math.round(shellRadius * Math.cos(player.shells[0].rad+1.0*tmp/cc*2*Math.PI));
+            player.shells[i].y = player.y + Math.round(shellRadius * Math.sin(player.shells[0].rad+1.0*tmp/cc*2*Math.PI));
+            ++tmp;
             //    console.log(shellRadius,shellArgs[i],player.x, player.shells[i].x, player.y, player.shells[i].y);
         } else {
             player.shells[i].x += player.shells[i].vx;
@@ -641,8 +644,8 @@ io.on('connection', function(socket) {
         for (i = 0; i < currentPlayer.shells.length; i++) {
             // 撃っている感が弱くなる実装をしているので、要修正
             if (currentPlayer.shells[i].hold) {
-                currentPlayer.shells[i].vx = Math.round(50 * Math.cos(vArg));
-                currentPlayer.shells[i].vy = Math.round(50 * Math.sin(vArg));
+                currentPlayer.shells[i].vx = Math.round(50 * Math.cos(vArg))/10;
+                currentPlayer.shells[i].vy = Math.round(50 * Math.sin(vArg))/10;
                 currentPlayer.shells[i].x = currentPlayer.x;// + Math.round((currentPlayer.radius + 30 + currentPlayer.shells[i].radius) * Math.cos(vArg));
                 currentPlayer.shells[i].y = currentPlayer.y;//+ Math.round((currentPlayer.radius + 30 + currentPlayer.shells[i].radius) * Math.sin(vArg));
                 currentPlayer.shells[i].hold = false;
@@ -664,10 +667,13 @@ io.on('connection', function(socket) {
         if (holdShellCnt > 0) {
             var sumShellCnt = holdShellCnt;
             holdShellCnt = 0;
+            var tmp=0,cc = util.filter(currentPlayer.shells,function(e){return e.hold;});
             for (i = 0; i < currentPlayer.shells.length; i++) {
                 if (currentPlayer.shells[i].hold) {
-                    currentPlayer.shells[i].x = currentPlayer.x + Math.round((currentPlayer.radius + currentPlayer.shells[i].radius + 20) * Math.cos(firstShellArg + holdShellCnt * 2 * Math.PI / sumShellCnt));
-                    currentPlayer.shells[i].y = currentPlayer.y + Math.round((currentPlayer.radius + currentPlayer.shells[i].radius + 20) * Math.sin(firstShellArg + holdShellCnt * 2 * Math.PI / sumShellCnt));
+                    currentPlayer.shells[i].x = currentPlayer.x + Math.round((currentPlayer.radius + currentPlayer.shells[i].radius + 20) * Math.cos(currentPlayer.shells[0].rad + tmp/cc * 2 * Math.PI ));
+                    currentPlayer.shells[i].y = currentPlayer.y + Math.round((currentPlayer.radius + currentPlayer.shells[i].radius + 20) * Math.sin(currentPlayer.shells[0].rad + tmp/cc * 2 * Math.PI ));
+                    tmp++;
+                    console.log("update");
                 }
             }
         }
