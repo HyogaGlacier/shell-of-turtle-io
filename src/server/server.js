@@ -336,8 +336,10 @@ function balanceMass() {
     }
 
     var shellCnt = shells.length;
+  //  console.log(users);
     for (var i = 0; i < users.length; i++){
-        shellCnt += users.shells[i].length;
+      //console.log("32f",shells.length,users.shells[i].length);
+        shellCnt += users[i].shells.length;
     }
     if (shellCnt < 10) {
         addShell(10 - shellCnt);
@@ -641,8 +643,8 @@ io.on('connection', function(socket) {
             if (currentPlayer.shells[i].hold) {
                 currentPlayer.shells[i].vx = Math.round(50 * Math.cos(vArg));
                 currentPlayer.shells[i].vy = Math.round(50 * Math.sin(vArg));
-                currentPlayer.shells[i].x = currentPlayer.x + Math.round((currentPlayer.radius + 30 + currentPlayer.shells[i].radius) * Math.cos(vArg));
-                currentPlayer.shells[i].y = currentPlayer.y + Math.round((currentPlayer.radius + 30 + currentPlayer.shells[i].radius) * Math.sin(vArg));
+                currentPlayer.shells[i].x = currentPlayer.x;// + Math.round((currentPlayer.radius + 30 + currentPlayer.shells[i].radius) * Math.cos(vArg));
+                currentPlayer.shells[i].y = currentPlayer.y;//+ Math.round((currentPlayer.radius + 30 + currentPlayer.shells[i].radius) * Math.sin(vArg));
                 currentPlayer.shells[i].hold = false;
                 break;
             }
