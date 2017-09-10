@@ -26,7 +26,7 @@ var users = [];
 var massFood = [];
 var food = [];
 var shells = [];
-var virus = [];
+// var virus = [];
 // -----
 var shells = [];
 var sockets = {};
@@ -57,6 +57,7 @@ var initMassLog = util.log(c.defaultPlayerMass, c.slowBase);
 
 app.use(express.static(__dirname + '/../client'));
 
+
 function addFood(toAdd) {
     var radius = util.massToRadius(c.foodMass);
     while (toAdd--) {
@@ -73,7 +74,6 @@ function addFood(toAdd) {
     }
 }
 
-// -----
 function breakFood(breakUser) {
     var radius = util.massToRadius(c.foodMass);
     breakUser.mass *= 0.8;
@@ -99,6 +99,21 @@ function breakFood(breakUser) {
     }
 }
 
+function addShell(toAdd) {
+    while (toAdd--) {
+        var position = shells.length >= 5 ? util.uniformPosition(shells, radius) : util.randomPosition(radius);
+        shells.push({
+            id: ((new Date()).getTime() + '-' + shells.length) >>> 0,
+            x: position.x,
+            y: position.y,
+            radius: radius,
+            hue: Math.round(Math.random() * 360)
+        });
+    }
+}
+
+
+/*
 function addVirus(toAdd) {
     while (toAdd--) {
         var mass = util.randomInRange(c.virus.defaultMass.from, c.virus.defaultMass.to, true);
@@ -116,11 +131,16 @@ function addVirus(toAdd) {
         });
     }
 }
+*/
 
 function removeFood(toRem) {
     while (toRem--) {
         food.pop();
     }
+}
+
+function removeShell(rmNum) {
+    shells.splice(0, rmNum);
 }
 
 function movePlayer(player) {
@@ -131,12 +151,8 @@ function movePlayer(player) {
     for (var i = 0; i < player.shells.length; i++) {
         shellArgs.push(Math.atan2(player.shells[i].y - player.y, player.shells[i].x - player.x));
     }
-    var shellRadius = 50;
-    if (player.shells.length > 0) {
-        shellRadius = Math.round(Math.sqrt(Math.pow(player.shells[0].y - player.y, 2) + Math.pow(player.shells[0].x - player.x, 2)));
-    }
 
-    for ( i = 0; i < player.cells.length; i++) {
+    for (i = 0; i < player.cells.length; i++) {
         var target = {
             x: player.x - player.cells[i].x + player.target.x,
             y: player.y - player.cells[i].y + player.target.y
@@ -210,6 +226,8 @@ function movePlayer(player) {
     player.x = x / player.cells.length;
     player.y = y / player.cells.length;
     // -----
+    var shellRadius = player.radius + 40;
+
     for (i = 0; i < shellArgs.length; i++) {
         let borderCalc = player.shells[i].radius / 3;
         if (player.shells.hold) {
@@ -289,11 +307,31 @@ function balanceMass() {
         //console.log('[DEBUG] Mass rebalanced!');
     }
 
+    var ShellCnt = shells.length;
+    for (var _i = 0; _i < users.length; _i++) {
+        ShellCnt += users[i].shells.length;
+    }
+
+    if (ShellCnt < 10) {
+        addShell(10 - ShellCnt);
+        ShellCnt = 10;
+    }
+    if (ShellCnt < 3 * users.length) {
+        addShell(3 * users.length - ShellCnt);
+        ShellCnt = 3 * users.length;
+    }
+
+    if (ShellCnt > 3 * users.length) {
+        removeShell(min(shells.length, ShellCnt - 3 * users.length));
+    }
+
+    /*
     var virusToAdd = c.maxVirus - virus.length;
 
     if (virusToAdd > 0) {
         addVirus(virusToAdd);
     }
+    */
 }
 
 io.on('connection', function(socket) {
@@ -372,8 +410,8 @@ io.on('connection', function(socket) {
                     x: position.x + (radius + 30) * Math.cos(2 * Math.PI * tmprand),
                     y: position.y + (radius + 30) * Math.sin(2 * Math.PI * tmprand),
                     hold: true,
-                    vx: -10 * Math.sin(tmprand * 2 * Math.PI),
-                    vy: 10 * Math.cos(tmprand * 2 * Math.PI),
+                    vx: 0,
+                    vy: 0,
                     radius: 20
                 }];
                 player.massTotal = c.defaultPlayerMass;
@@ -550,7 +588,7 @@ io.on('connection', function(socket) {
             currentPlayer.lastSplit = new Date().getTime();
         }
     });
-    socket.on('3', function () {
+    socket.on('3', function() {
         // ランダムに1発発射、hold=falseに
         var holdShellCnt = 0;
         for (var i = 0; i < currentPlayer.shells.length; i++) {
@@ -558,7 +596,7 @@ io.on('connection', function(socket) {
         }
         if (holdShellCnt == 0) return;
         var vArg = Math.atan2(currentPlayer.target.y - currentPlayer.y, currentPlayer.target.x - currentPlayer.x);
-        for ( i = 0; i < currentPlayer.shells.length; i++) {
+        for (i = 0; i < currentPlayer.shells.length; i++) {
             // 撃っている感が弱くなる実装をしているので、要修正
             if (currentPlayer.shells[i].hold) {
                 currentPlayer.shells[i].vx = Math.round(50 * Math.cos(vArg));
@@ -573,7 +611,7 @@ io.on('connection', function(socket) {
         // Shellを再構成
         holdShellCnt = 0;
         var firstShellArg = Math.PI;
-        for ( i = 0; i < currentPlayer.shells.length; i++) {
+        for (i = 0; i < currentPlayer.shells.length; i++) {
             if (currentPlayer.shells[i].hold) {
                 holdShellCnt++;
                 if (firstShellArg == Math.PI) {
@@ -581,10 +619,10 @@ io.on('connection', function(socket) {
                 }
             }
         }
-        if(holdShellCnt>0) {
+        if (holdShellCnt > 0) {
             var sumShellCnt = holdShellCnt;
             holdShellCnt = 0;
-            for ( i = 0; i < currentPlayer.shells.length; i++) {
+            for (i = 0; i < currentPlayer.shells.length; i++) {
                 if (currentPlayer.shells.hold) {
                     currentPlayer.shells[i].x = currentPlayer.x + Math.round((currentPlayer.radius + currentPlayer.shells[i].radius + 20) * Math.cos(firstShellArg + holdShellCnt * 2 * Math.PI / sumShellCnt));
                     currentPlayer.shells[i].y = currentPlayer.y + Math.round((currentPlayer.radius + currentPlayer.shells[i].radius + 20) * Math.sin(firstShellArg + holdShellCnt * 2 * Math.PI / sumShellCnt));
@@ -926,7 +964,6 @@ function sendUpdates() {
                                 x: f.x,
                                 y: f.y,
                                 cells: f.cells,
-                                shells: f.shells,
                                 massTotal: Math.round(f.massTotal),
                                 hue: f.hue,
                                 name: f.name
@@ -937,7 +974,6 @@ function sendUpdates() {
                                 x: f.x,
                                 y: f.y,
                                 cells: f.cells,
-                                shells: f.shells,
                                 massTotal: Math.round(f.massTotal),
                                 hue: f.hue,
                             };
