@@ -14,11 +14,12 @@ var debug = function(args) {
 function startGame() {
     const type = 'player';
 
-    global.playerName = 'bot';
+    global.playerName = 'bot' + Math.ceil(Math.random() * 10000);
     global.playerType = type;
 
     if (!socket) {
-        socket = io('http://localhost:3000/', {query: 'type=' + type});
+        //socket = io('http://localhost:3000/', {query: 'type=' + type});
+        socket = io('https://shell-of-turtle.herokuapp.com/', {query: 'type=' + type});
         setupSocket(socket);
     }
     socket.emit('respawn');
@@ -106,15 +107,15 @@ function setupSocket(socket) {
     });
 
     socket.on('playerDied', function (data) {
-        console.log('{GAME} - <b>' + (data.name.length < 1 ? 'An unnamed cell' : data.name) + '</b> was eaten.');
+        console.log('{GAME} - <b>' + (data.name ? data.name : 'An unnamed cell') + '</b> was eaten.');
     });
 
     socket.on('playerDisconnect', function (data) {
-        console.log('{GAME} - <b>' + (data.name.length < 1 ? 'An unnamed cell' : data.name) + '</b> disconnected.');
+        console.log('{GAME} - <b>' + (data.name ? data.name : 'An unnamed cell') + '</b> disconnected.');
     });
 
     socket.on('playerJoin', function (data) {
-        console.log('{GAME} - <b>' + (data.name.length < 1 ? 'An unnamed cell' : data.name) + '</b> joined.');
+        console.log('{GAME} - <b>' + (data.name ? data.name : 'An unnamed cell') + '</b> joined.');
     });
 
     socket.on('leaderboard', function (data) {
