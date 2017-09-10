@@ -104,7 +104,8 @@ var playerConfig = {
     textColor: '#FFFFFF',
     textBorder: '#000000',
     textBorderSize: 3,
-    defaultSize: 30
+    defaultSize: 30,
+
 };
 
 var player = {
@@ -113,16 +114,18 @@ var player = {
     y: global.screenHeight / 2,
     screenWidth: global.screenWidth,
     screenHeight: global.screenHeight,
-    target: {x: global.screenWidth / 2, y: global.screenHeight / 2}
+    target: {x: global.screenWidth / 2, y: global.screenHeight / 2},
+    fireshell:0
 };
 global.player = player;
 
 var foods = [];
+var shells = [];
 var viruses = [];
 var fireFood = [];
 var users = [];
 var leaderboard = [];
-var target = {x: player.x, y: player.y};
+var target = {x: player.x, y: player.y ,fireshell:player.fireshell};
 global.target = target;
 
 window.canvas = new Canvas();
@@ -140,11 +143,15 @@ continuitySetting.onchange = settings.toggleContinuity;
 var roundFoodSetting = document.getElementById('roundFood');
 roundFoodSetting.onchange = settings.toggleRoundFood;
 
+//var roundShellSetting = document.getElementById('roundShell');
+//roundShellSetting.onchange = settings.toggleRoundShell;
+
 var c = window.canvas.cv;
 var graph = c.getContext('2d');
 
 $( "#feed" ).click(function() {
     socket.emit('1');
+    console.log("feed");
     window.canvas.reenviar = false;
 });
 
@@ -192,7 +199,6 @@ function setupSocket(socket) {
         }
 		c.focus();
     });
-
     socket.on('gameSetup', function(data) {
         global.gameWidth = data.gameWidth;
         global.gameHeight = data.gameHeight;
@@ -242,7 +248,7 @@ function setupSocket(socket) {
     });
 
     // Handle movement.
-    socket.on('serverTellPlayerMove', function (userData, foodsList, massList, virusList) {
+    socket.on('serverTellPlayerMove', function (userData, foodsList,  massList, virusList,shellsList) {
         var playerData;
         for(var i =0; i< userData.length; i++) {
             if(typeof(userData[i].id) == "undefined") {
@@ -264,8 +270,12 @@ function setupSocket(socket) {
         }
         users = userData;
         foods = foodsList;
+        shells = shellsList;
+
         viruses = virusList;
         fireFood = massList;
+
+
     });
 
     // Death.
@@ -315,6 +325,7 @@ function drawCircle(centerX, centerY, radius, sides) {
     graph.fill();
 }
 
+
 function drawFood(food) {
     graph.strokeStyle = 'hsl(' + food.hue + ', 100%, 45%)';
     graph.fillStyle = 'hsl(' + food.hue + ', 100%, 50%)';
@@ -340,6 +351,16 @@ function drawFireFood(mass) {
     drawCircle(mass.x - player.x + global.screenWidth / 2,
                mass.y - player.y + global.screenHeight / 2,
                mass.radius-5, 18 + (~~(mass.masa/5)));
+}
+
+/*ようしゅうせい*/
+function drawShell(shell) {
+    graph.strokeStyle = 'hsl(' + shell.hue + ', 100%, 45%)';
+    graph.fillStyle = 'hsl(' + shell.hue + ', 100%, 50%)';
+    graph.lineWidth = playerConfig.border+10;
+    drawCircle(mass.x - player.x + global.screenWidth / 2,
+               mass.y - player.y + global.screenHeight / 2,
+               mass.radius-5 ,32 );
 }
 
 function drawPlayers(order) {
@@ -392,6 +413,26 @@ function drawPlayers(order) {
             xstore[i] = x;
             ystore[i] = y;
         }
+        var numbers_loop = 6;//.map();
+        var tt = 2*Math.PI/numbers_loop;
+        var cycle =2;
+        var yy = 2*Math.PI/1000/cycle*performance.now();
+
+
+        for ( i=0;i<numbers_loop;++i){
+           x = 2.5* cellCurrent.radius * Math.cos(yy+tt*i) + circle.x;
+           y = 2.5* cellCurrent.radius * Math.sin(yy+tt*i) + circle.y;
+          drawCircle(x,y,10,32);
+        }
+/*userごとに色を返す*/
+        /*for (i=0;i<player.shells.length;++i){
+          var player_now = user[util.findIndex(users, player.shells.id)];
+          graph.strokeStyle = 'hsl(' + player_now.hue + ', 100%, 45%)';
+          graph.fillStyle = 'hsl(' + player_now.hue + ', 100%, 50%)';
+          drawCircle(player.shells[i].x,player.shells[i].y,player.radius,32);
+        }*/
+        graph.strokeStyle = 'hsl(' + userCurrent.hue + ', 100%, 45%)';
+        graph.fillStyle = 'hsl(' + userCurrent.hue + ', 100%, 50%)';
         /*if (wiggle >= player.radius/ 3) inc = -1;
         *if (wiggle <= player.radius / -3) inc = +1;
         *wiggle += inc;
@@ -406,7 +447,6 @@ function drawPlayers(order) {
                 graph.lineTo(xstore[i], ystore[i]);
                 graph.lineTo(xstore[0], ystore[0]);
             }
-
         }
         graph.lineJoin = 'round';
         graph.lineCap = 'round';
@@ -549,6 +589,7 @@ function gameLoop() {
             drawgrid();
             foods.forEach(drawFood);
             fireFood.forEach(drawFireFood);
+            //shells.forEach(drawShell);
             viruses.forEach(drawVirus);
 
             if (global.borderDraw) {
