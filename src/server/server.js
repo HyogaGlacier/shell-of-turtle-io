@@ -161,7 +161,8 @@ function movePlayer(player) {
         var RR = Math.sqrt(Math.pow(player.shells[i].y - player.y, 2), Math.pow(player.shells[i].x - player.x, 2));
         if (RR == 0) {
             shellArgs.push(0);
-        } else if (player.shells[i].y - player.y > 0) {
+        }
+        else if (player.shells[i].y - player.y > 0) {
             shellArgs.push(Math.acos((player.shells[i].x - player.x) / RR));
         } else {
             shellArgs.push(Math.acos((player.shells[i].x - player.x) / RR) + Math.PI);
@@ -1076,6 +1077,4 @@ var ipaddress = process.env.OPENSHIFT_NODEJS_IP || process.env.IP || c.host;
 var serverport = process.env.OPENSHIFT_NODEJS_PORT || process.env.PORT || c.port;
 http.listen(serverport, ipaddress, function() {
     console.log('[DEBUG] Listening on ' + ipaddress + ':' + serverport);
-});    console.log('[DEBUG] Listening on ' + ipaddress + ':' + serverport);
 });
-
