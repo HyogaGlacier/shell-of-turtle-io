@@ -26,7 +26,7 @@ var users = [];
 var massFood = [];
 var food = [];
 var shells = [];
-// var virus = [];
+ var virus = [];
 // -----
 var shells = [];
 var sockets = {};
@@ -96,19 +96,6 @@ function breakFood(breakUser) {
             speed: 10
         });
         breakUser.mass -= putFoodMass;
-    }
-}
-
-function addShell(toAdd) {
-    while (toAdd--) {
-        var position = shells.length >= 5 ? util.uniformPosition(shells, radius) : util.randomPosition(radius);
-        shells.push({
-            id: ((new Date()).getTime() + '-' + shells.length) >>> 0,
-            x: position.x,
-            y: position.y,
-            radius: radius,
-            hue: Math.round(Math.random() * 360)
-        });
     }
 }
 
@@ -230,10 +217,12 @@ function movePlayer(player) {
 
     for (i = 0; i < shellArgs.length; i++) {
         let borderCalc = player.shells[i].radius / 3;
-        if (player.shells.hold) {
+        console.log(player.shells[i].hold);
+        if (player.shells[i].hold) {
             shellArgs[i] += 2 * Math.PI / 36.0;
             player.shells[i].x = player.x + Math.round(shellRadius * Math.cos(shellArgs[i]));
             player.shells[i].y = player.y + Math.round(shellRadius * Math.sin(shellArgs[i]));
+            console.log(player.x,player.shells[i].x,player.y,player.shells[i].y);
         } else {
             player.shells[i].x += player.shells[i].vx;
             player.shells[i].y += player.shells[i].vy;
@@ -307,23 +296,6 @@ function balanceMass() {
         //console.log('[DEBUG] Mass rebalanced!');
     }
 
-    var ShellCnt = shells.length;
-    for (var _i = 0; _i < users.length; _i++) {
-        ShellCnt += users[i].shells.length;
-    }
-
-    if (ShellCnt < 10) {
-        addShell(10 - ShellCnt);
-        ShellCnt = 10;
-    }
-    if (ShellCnt < 3 * users.length) {
-        addShell(3 * users.length - ShellCnt);
-        ShellCnt = 3 * users.length;
-    }
-
-    if (ShellCnt > 3 * users.length) {
-        removeShell(min(shells.length, ShellCnt - 3 * users.length));
-    }
 
     /*
     var virusToAdd = c.maxVirus - virus.length;
@@ -964,6 +936,7 @@ function sendUpdates() {
                                 x: f.x,
                                 y: f.y,
                                 cells: f.cells,
+                                shells: f.shells,
                                 massTotal: Math.round(f.massTotal),
                                 hue: f.hue,
                                 name: f.name
@@ -974,6 +947,7 @@ function sendUpdates() {
                                 x: f.x,
                                 y: f.y,
                                 cells: f.cells,
+                                shells: f.shells,
                                 massTotal: Math.round(f.massTotal),
                                 hue: f.hue,
                             };
