@@ -26,7 +26,7 @@ var users = [];
 var massFood = [];
 var food = [];
 var shells = [];
- var virus = [];
+var virus = [];
 // -----
 var shells = [];
 var sockets = {};
@@ -136,7 +136,15 @@ function movePlayer(player) {
     // -----
     var shellArgs = [];
     for (var i = 0; i < player.shells.length; i++) {
-        shellArgs.push(Math.atan2(player.shells[i].y - player.y, player.shells[i].x - player.x));
+        var RR = Math.sqrt(Math.pow(player.shells[i].y - player.y, 2), Math.pow(player.shells[i].x - player.x, 2));
+        if (RR == 0) {
+            shellArgs.push(0);
+        }
+        else if (player.shells[i].y - player.y > 0) {
+            shellArgs.push(acos((player.shells[i].x - player.x) / RR));
+        } else {
+            shellArgs.push(acos((player.shells[i].x - player.x) / RR) + Math.PI);
+        }
     }
 
     for (i = 0; i < player.cells.length; i++) {
@@ -222,7 +230,7 @@ function movePlayer(player) {
             shellArgs[i] += 2 * Math.PI / 36.0;
             player.shells[i].x = player.x + Math.round(shellRadius * Math.cos(shellArgs[i]));
             player.shells[i].y = player.y + Math.round(shellRadius * Math.sin(shellArgs[i]));
-            console.log(player.x,player.shells[i].x,player.y,player.shells[i].y);
+            console.log(player.x, player.shells[i].x, player.y, player.shells[i].y);
         } else {
             player.shells[i].x += player.shells[i].vx;
             player.shells[i].y += player.shells[i].vy;
