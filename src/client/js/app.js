@@ -265,6 +265,8 @@ function setupSocket(socket) {
             player.hue = playerData.hue;
             player.massTotal = playerData.massTotal;
             player.cells = playerData.cells;
+            console.log(playerData,playerData.shells);
+            player.shells =playerData.shells;
             player.xoffset = isNaN(xoffset) ? 0 : xoffset;
             player.yoffset = isNaN(yoffset) ? 0 : yoffset;
         }
@@ -419,18 +421,19 @@ function drawPlayers(order) {
         var yy = 2*Math.PI/1000/cycle*performance.now();
 
 
-        for ( i=0;i<numbers_loop;++i){
+        /*for ( i=0;i<numbers_loop;++i){
            x = 2.5* cellCurrent.radius * Math.cos(yy+tt*i) + circle.x;
            y = 2.5* cellCurrent.radius * Math.sin(yy+tt*i) + circle.y;
           drawCircle(x,y,10,32);
-        }
+        }*/
 /*userごとに色を返す*/
-        /*for (i=0;i<player.shells.length;++i){
+        console.log("turtle",player.shells);
+        for (i=0;i<player.shells.length;++i){
           var player_now = user[util.findIndex(users, player.shells.id)];
           graph.strokeStyle = 'hsl(' + player_now.hue + ', 100%, 45%)';
           graph.fillStyle = 'hsl(' + player_now.hue + ', 100%, 50%)';
           drawCircle(player.shells[i].x,player.shells[i].y,player.radius,32);
-        }*/
+        }
         graph.strokeStyle = 'hsl(' + userCurrent.hue + ', 100%, 45%)';
         graph.fillStyle = 'hsl(' + userCurrent.hue + ', 100%, 50%)';
         /*if (wiggle >= player.radius/ 3) inc = -1;
@@ -589,7 +592,7 @@ function gameLoop() {
             drawgrid();
             foods.forEach(drawFood);
             fireFood.forEach(drawFireFood);
-            //shells.forEach(drawShell);
+            shells.forEach(drawShell);
             viruses.forEach(drawVirus);
 
             if (global.borderDraw) {
