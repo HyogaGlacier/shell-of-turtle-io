@@ -139,11 +139,10 @@ function movePlayer(player) {
         var RR = Math.sqrt(Math.pow(player.shells[i].y - player.y, 2), Math.pow(player.shells[i].x - player.x, 2));
         if (RR == 0) {
             shellArgs.push(0);
-        }
-        else if (player.shells[i].y - player.y > 0) {
-            shellArgs.push(acos((player.shells[i].x - player.x) / RR));
+        } else if (player.shells[i].y - player.y > 0) {
+            shellArgs.push(Math.acos((player.shells[i].x - player.x) / RR));
         } else {
-            shellArgs.push(acos((player.shells[i].x - player.x) / RR) + Math.PI);
+            shellArgs.push(Math.acos((player.shells[i].x - player.x) / RR) + Math.PI);
         }
     }
 
