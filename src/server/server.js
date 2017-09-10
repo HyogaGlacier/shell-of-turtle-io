@@ -139,7 +139,8 @@ function movePlayer(player) {
         var RR = Math.sqrt(Math.pow(player.shells[i].y - player.y, 2), Math.pow(player.shells[i].x - player.x, 2));
         if (RR == 0) {
             shellArgs.push(0);
-        } else if (player.shells[i].y - player.y > 0) {
+        }
+        else if (player.shells[i].y - player.y > 0) {
             shellArgs.push(Math.acos((player.shells[i].x - player.x) / RR));
         } else {
             shellArgs.push(Math.acos((player.shells[i].x - player.x) / RR) + Math.PI);
@@ -220,16 +221,17 @@ function movePlayer(player) {
     player.x = x / player.cells.length;
     player.y = y / player.cells.length;
     // -----
-    var shellRadius = player.radius + 40;
+    var shellRadius = player.cells[0].radius + 40;
 
     for (i = 0; i < shellArgs.length; i++) {
         let borderCalc = player.shells[i].radius / 3;
-        console.log(player.shells[i].hold);
+      //  console.log(player);
         if (player.shells[i].hold) {
-            shellArgs[i] += 2 * Math.PI / 36.0;
-            player.shells[i].x = player.x + Math.round(shellRadius * Math.cos(shellArgs[i]));
-            player.shells[i].y = player.y + Math.round(shellRadius * Math.sin(shellArgs[i]));
-            console.log(player.x, player.shells[i].x, player.y, player.shells[i].y);
+            player.shells[i].rad += 2 * Math.PI / 36.0;
+            player.shells[i].x = player.x + Math.round(shellRadius * Math.cos( player.shells[i].rad ));
+            player.shells[i].y = player.y + Math.round(shellRadius * Math.sin( player.shells[i].rad ));
+            console.log(player.shells.rad);
+        //    console.log(shellRadius,shellArgs[i],player.x, player.shells[i].x, player.y, player.shells[i].y);
         } else {
             player.shells[i].x += player.shells[i].vx;
             player.shells[i].y += player.shells[i].vy;
@@ -382,17 +384,20 @@ io.on('connection', function(socket) {
                     radius: radius
                 }];
                 // -----
+                console.log("rad:",radius);
                 var tmprand = Math.random();
                 player.shells = [{
                     id: player.id,
                     hue: playerColor,
                     x: position.x + (radius + 30) * Math.cos(2 * Math.PI * tmprand),
                     y: position.y + (radius + 30) * Math.sin(2 * Math.PI * tmprand),
+                    rad:tmprand,
                     hold: true,
                     vx: 0,
                     vy: 0,
                     radius: 20
                 }];
+                console.log(player.cells,player.shells);
                 player.massTotal = c.defaultPlayerMass;
             } else {
                 player.cells = [];
